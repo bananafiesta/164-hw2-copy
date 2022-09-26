@@ -7,4 +7,4 @@
 (char? #\C), true
 (num? (char->num #\space)), true
 (char->num #\newline)
-(num->char (char->num #\Z)), \#Z
+(num->char (char->num #\Z)), #\Z
