@@ -6,6 +6,7 @@ open S_exp
 type value
   = Num of int
   | Bool of bool
+  | Char of char
 
 (* `display_value v` returns a string representation of the runtime value `v`.
  *)
@@ -17,6 +18,15 @@ let display_value : value -> string =
 
       | Bool b ->
           if b then "true" else "false"
+
+      | Char c ->
+        (match c with
+            | ' ' -> "\\#space"
+            | '\n' -> "\\#newline"
+            | _ -> sprintf "\\#%c" c
+
+        )
+    
     end
 
 (* `interp_primitive prim arg` tries to evaluate the primitive operation named
@@ -50,6 +60,18 @@ let interp_primitive : string -> value -> value option =
       | ("not", _) ->
           Some (Bool false)
 
+      | ("char?", Char _) -> 
+        Some (Bool true)
+    
+      | ("char?", _) ->
+        Some (Bool false)
+
+      | ("char->num", Char c) -> 
+        Some (Num (Char.code c))
+
+      | ("num->char", Num x) ->
+        Some (Char (Char.chr x))
+
       | _ ->
           None
     end
@@ -68,6 +90,9 @@ let rec interp_expr : s_exp -> value =
 
       | Sym "false" ->
           Bool false
+
+      | Chr c -> 
+        Char c
 
       | Lst [Sym f; arg] ->
           begin match interp_primitive f (interp_expr arg) with

@@ -1,0 +1,10 @@
+(char? #\newline), true
+(char? #\;), true
+(char? #\space), true
+(char? 5), false
+(char? true), false
+(char? (add1 2)), false
+(char? #\C), true
+(num? (char->num #\space)), true
+(char->num #\newline)
+(num->char (char->num #\Z)), \#Z

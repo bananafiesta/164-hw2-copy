@@ -22,6 +22,15 @@ let bool_mask =
 let bool_tag =
   0b0011111
 
+let char_shift =
+  8
+
+let char_mask =
+  0b11111111
+
+let char_tag =
+  0b00001111
+
 (* `operand_of_num x` returns the runtime representation of the number `x` as
  * an operand for instructions.
  *)
@@ -35,6 +44,11 @@ let operand_of_num : int -> operand =
 let operand_of_bool : bool -> operand =
   fun b ->
     Imm (((if b then 1 else 0) lsl bool_shift) lor bool_tag)
+
+
+let operand_of_char : char -> operand =
+  fun c ->
+    Imm(((Char.code c) lsl char_shift) lor char_tag)
 
 (* Helper instructions to convert the ZF flag to the runtime representation of a
  * boolean.
@@ -77,6 +91,24 @@ let compile_primitive : s_exp -> string -> directive list =
           ]
           @ zf_to_bool
 
+      | "char?" ->
+          [ And (Reg Rax, Imm char_mask)
+          ; Cmp (Reg Rax, Imm char_tag)
+          ]
+          @ zf_to_bool
+
+      | "char->num" ->
+          [ Shr (Reg Rax, Imm char_shift)
+          ; Shl (Reg Rax, Imm num_shift)
+          ; Or (Reg Rax, Imm num_tag)
+          ]
+
+      | "num->char" -> 
+          [ Shr (Reg Rax, Imm num_shift)
+          ; Shl (Reg Rax, Imm char_shift)
+          ; Or (Reg Rax, Imm char_tag)
+          ]
+
       | _ ->
           raise (Error.Stuck e)
     end
@@ -96,6 +128,11 @@ let rec compile_expr : s_exp -> directive list =
 
       | Sym "false" ->
           [ Mov (Reg Rax, operand_of_bool false)
+          ]
+
+      | Chr c ->
+          [
+            Mov (Reg Rax, operand_of_char c)
           ]
 
       | Lst [Sym f; arg] as exp ->
